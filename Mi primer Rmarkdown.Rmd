@@ -1,0 +1,122 @@
+---
+title: "Mi Primer RmarkDown"
+author: "Gutiérrez Taboada, Wilber."
+date: "`r format(Sys.Date())`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: "united"
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo= TRUE)
+```
+
+# 1. **Practicando**
+
+## 1.1. **Introducciòn**
+
+![sticker rmarkdown](D:/WORKrstudio/logo.webp) ![sticker rmarkdown](D:/WORKrstudio/logo1.jpg) [Mi GITHUB](https://github.com/WilberGutierrezT)[^1]
+
+<details><summary> Texto escondido </summary>
+__RESEVEN LA FECHA__ 
+
+Queridos amigos,
+
+faltan `r as.Date('2022-05-02') - Sys.Date()` días para mi cumpleaños, y me gustaría
+asegurarme que podré celebrar con ustedes.
+
+**shortcuts:**
+
+-   ctrl + alt + i para abrir el chunk:
+
+-   ctrl + shift + enter para ejercutar el paquete de codigo:
+echo= FALSE: no muestra el código, pero ejecuta el código y muestra el resultado.
+include= FALSE: no muestra el código ni muestra el resultado, pero ejecuta el código.
+eval= FALSE: muestra código, pero no ejecuta.
+message= FALSE: no muestra mensajes de warning en el resultado.
+
+</details>
+
+[^1]: visitar para más información de los códigos y contenidos.
+
+```{r packages, message = FALSE, include= FALSE}
+setwd('D:/WORKrstudio')
+# TODAS LAS LIBRERIAS:
+# install.packages("cowplot") # para usar libreria ggdraw
+library(cowplot)
+library(tidyverse)
+library(readxl)
+library(scales)
+library(ggthemes)
+
+
+```
+
+## 1.2. **Importamos la data y filtramos:**
+
+Hadley Wickham, dijo:
+
+> "Todos los set de datos ordenados se parecen unos a otros, pero cada set de datos desordenado lo es a su manera"
+
+```{r Data}
+# librerias 
+  # library(tidyverse)
+  # library(readxl)
+
+inversion <- read_excel('PBIsector.xlsx')
+
+inv <- inversion %>% 
+  select(Manufactura, Construcción) %>% 
+  mutate(anio= seq.Date(as.Date('2010-01-01'),
+                        by= 'year',
+                        length.out= 12)) %>% 
+  pivot_longer(cols = c("Manufactura", "Construcción"), 
+               names_to = "Sector",
+               values_to = "Aporte")
+
+INV <- inv %>% select(anio, Sector) %>% 
+  mutate(Aporte =round(inv$Aporte, 1))
+
+# creamos tabla para el resultado
+  knitr::kable(INV)
+
+
+```
+
+## 1.3. **Creamos una gráfica:**
+
+```{r Plots, message=TRUE}
+# librerias adicionales a ggplot2
+  # library(scales)
+  # library(ggthemes)
+
+ggplot(INV, aes(x=anio, y= Aporte, fill= Sector)) +
+  geom_bar(stat = "identity",
+           position = "dodge") +
+  geom_hline(yintercept=0, 
+             linetype= 1, color="black", size= .6) +
+  # etiqueta en la grafica
+  # truco: tail(data, # de etiquetas a agregar)
+  geom_label(data=tail(INV, 1), aes(label=round(Aporte,2)),
+             nudge_x= 12, nudge_y =3) +
+  # geom_text(aes(label= Aporte + 2), 
+  #           # position = position_stack(vjust = 0.5),
+  #           position = position_dodge(width = 0.9),
+  #           vjust= 0) +
+  # escala de los ejes
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(
+    x= "",
+    y="Variación % real"
+  ) +
+  theme_stata() +
+  theme(
+    # ejes
+    axis.line.x = element_blank(),
+    axis.line.y = element_blank()
+  )
+
+```
